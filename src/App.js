@@ -1,9 +1,87 @@
 import { useState } from 'react';
 import './App.css';
 
+const hiddenWord = "лодка";
+
+const words = [
+  "лампа", "зебра", "книга", "мечта", "пчела", "трава", "парус", "сонет", "венок", "цветы",
+  "сосна", "весна", "птица", "земля", "лодка", "груша", "мороз", "тепло", "бочка", "дверь",
+  "ветка", "ягода", "улица", "шапка", "флора", "игрок", "палка", "вилка", "около", "лампа", 
+  "ойуой", "ооотт", , "йоуой", "юнион", "аллоу", "банал"
+];
+
+function checkWords(userWord, hiddenWord) {
+  const wordInfo = [];
+  for (let i = 0; i < userWord.length; i++) {
+    if (userWord[i] === hiddenWord[i]) {
+      wordInfo.push({ name: userWord[i], status: "correct"});
+    } else {
+      wordInfo.push({ name: userWord[i], status: "incorrect"});
+    }
+  }
+
+  for (const letter of hiddenWord) {
+    let letterHiddenCounter = hiddenWord.split(letter).length - 1;
+    let letterUserCounter = wordInfo.filter(wiLetter => wiLetter.name === letter).length;
+    let paintedCounter = wordInfo.filter(wiLetter => 
+      wiLetter.name === letter && (wiLetter.status === "correct" || wiLetter.status === "correct")
+    ).length;
+
+    if (letterUserCounter > letterHiddenCounter) letterUserCounter = letterHiddenCounter;
+    let timesToPaint = letterUserCounter - paintedCounter;
+
+    if (letterUserCounter > 0 && (letterUserCounter > paintedCounter)) {
+      for (let wordInfoLetter of wordInfo) {
+        if (wordInfoLetter.name === letter)
+        if (wordInfoLetter.status === "incorrect" && wordInfoLetter.status !== "correct" && wordInfoLetter.name === letter) {
+          wordInfoLetter.status = "exist";
+          timesToPaint -= 1;
+        }
+        if (timesToPaint === 0) break;
+      }
+    }
+  }
+  return wordInfo;
+}
+
+function paintKeyboard(word, keyboard) {
+  const newLetters = [];
+
+  // Подготовка букв для покраски
+  for (const letter of word) {
+    if (!newLetters.some((newLetter) => newLetter.name === letter.name)) {
+      newLetters.push(letter);
+    } else {
+      const index = newLetters.findIndex((newLetter) => newLetter.name === letter.name);
+      if ((newLetters[index].status === "incorrect" && (letter.status === "exist" || letter.status === "correct")) ||
+          (newLetters[index].status === "exist" && letter.status === "correct")) {
+        newLetters.splice(index, 1); 
+        newLetters.push(letter);
+      }
+    }
+  }
+
+  // Покраска клавиатуры
+  for (const letter of newLetters) {
+    for (const row of keyboard) {
+      row.forEach(rowLetter => {
+        if (rowLetter.name === letter.name) {
+          if (rowLetter.status === "") {
+            rowLetter.status = letter.status;
+          } else if ((rowLetter.status === "incorrect" && (letter.status === "exist" || letter.status === "correct")) ||
+              (rowLetter.status === "exist" && letter.status === "correct")) {
+            rowLetter.status = letter.status;
+          }
+        }
+      });
+    }
+  }
+  return keyboard;
+}
+
 
 function getStatusClass(letter) {
-  let statusClass = '';
+  let statusClass = "";
   if (letter.status === "correct") {
     statusClass = "correct";
   } else if (letter.status === "incorrect") {
@@ -20,8 +98,8 @@ const keyBoardLetters = [["й","ц","у","к","е","н","г","ш","щ","з","х"
                   ["<","я","ч","с","м","и","т","ь","б","ю","Enter"]]
 
 
-let initGameField = Array.from({ length: 5 }, () =>
-  Array.from({ length: 6 }, () => ({ name: "", status: "" }))
+let initGameField = Array.from({ length: 6 }, () =>
+  Array.from({ length: 5 }, () => ({ name: "", status: "" }))
 );
 
 
@@ -37,12 +115,14 @@ function App() {
   function handleKeyboardClick(clickedLetter) {
     let changed = false;
 
+    // Проврека когда можно добавлять новую букву
     for (const word of gameField) {
-      if (word.at(-2).name !== "") {
+      if (word.at(-1).name !== "" && word.at(-1).status === "") {
         return
       }
     }
 
+    // Добавление новой буквы
     const newGameField = gameField.map((word) => (
       word.map((letter) => {
         if (!changed && letter.name === "") {
@@ -57,7 +137,64 @@ function App() {
   }
 
   function deleteLastLetter() {
-    return
+    let changed = false;
+
+    // Проверка, чтобы не удалять окрашенные буквы
+    const letterToDelete = gameField.some(word =>
+      word.some(letter => letter.name !== "" && letter.status === "")
+    );
+    if (!letterToDelete) return;
+
+    // Удаление буквы
+    const newGameField = gameField.toReversed().map((word) => 
+      word.toReversed().map((letter) => {
+        if (!changed && letter.name !== "") {
+          changed = true;
+          return { name: "", status: "" };
+        }
+        return letter;
+      })
+    ).toReversed().map((row) => row.toReversed());
+    
+    setGameField(newGameField);
+  }
+  
+  function confirmWord() {
+    let userWord = "";
+
+    // Обработка слова пользователя
+    for (const word of gameField.toReversed()) {
+      if (word[0].name !== "") {
+        for (const letter of word) {
+          userWord += `${letter.name}`;
+        }
+        break
+      }
+    }
+    // Проверка длины слова
+    if (userWord.length >= 5) {
+      // Проверка слова на существование
+      if (words.includes(userWord)) {
+        console.log("СЛОВО СУЩЕВСТВУЕТ");
+        // Закрашивание букв игрового поля
+        const newGameField = gameField.map((word) => {
+          // Проверка новое ли слово
+          if ((word.at(-1).name === "" && word.at(-1).status === "") || 
+              (word.at(-1).name !== "" && word.at(-1).status !== "")) {
+            return word;
+          } else {
+            setKeyboard(paintKeyboard(checkWords(userWord, hiddenWord), keyboard))
+            return checkWords(userWord, hiddenWord);
+          }
+        })
+        setGameField(newGameField);
+      
+      } else {
+        console.log("СЛОВО НЕ СУЩЕВСТВУЕТ")
+      }
+    } else {
+      console.log(`Слово ${userWord} не готово`);
+    }
   }
 
   return (
@@ -74,9 +211,9 @@ function App() {
       {keyboard.map((row, rowKey) => (
         <div className="keyboard" key={rowKey}>
           {row.map((letter, letterKey) => {
-            if (letter.name === "enter") {
+            if (letter.name === "Enter") {
               return (
-                <div className={`key key-wide ${getStatusClass(letter)}`} key={letterKey}>
+                <div className={`key key-wide ${getStatusClass(letter)}`} key={letterKey} onClick={() => confirmWord()}>
                   {letter.name}
                 </div>
               );
