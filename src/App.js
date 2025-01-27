@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { words } from './words.js';
 import './App.css';
 
@@ -86,27 +86,48 @@ function getStatusClass(letter) {
 }
 
 
-const keyBoardLetters = [["й","ц","у","к","е","н","г","ш","щ","з","х","ъ"],
-                  ["ф","ы","в","а","п","р","о","л","д","ж","э"],
-                  ["<","я","ч","с","м","и","т","ь","б","ю","Enter"]]
-
-
-const initGameField = Array.from({ length: 6 }, () =>
-  Array.from({ length: 5 }, () => ({ name: "", status: "" }))
-);
-
-
-const initialKeyboard = keyBoardLetters.map(row => 
-  row.map(letter => ({ name: letter, status: "" }))
-);
-
-
 function App() {
-  const [gameField, setGameField] = useState(initGameField);
-  const [keyboard, setKeyboard] = useState(initialKeyboard);
-  const [hiddenWord, setHiddenWord] = useState(words[Math.floor(Math.random() * words.length)]);
+  const [gameField, setGameField] = useState([]);
+  const [keyboard, setKeyboard] = useState([]);
+  const [hiddenWord, setHiddenWord] = useState("");
   const [win, setWin] = useState(false);
+  const [trigger, setTrigger] = useState(false);
 
+  useEffect(() => {
+    
+    if (win) {
+      localStorage.clear();
+    }
+
+    if (localStorage.getItem("gameField") && localStorage.getItem("keyboard") && localStorage.getItem("hiddenWord")) {
+      setGameField(JSON.parse(localStorage.getItem("gameField")));
+      setKeyboard(JSON.parse(localStorage.getItem("keyboard")));
+      setHiddenWord(localStorage.getItem("hiddenWord"));
+    } else {
+      const keyBoardLetters = [
+        ["й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з", "х", "ъ"],
+        ["ф", "ы", "в", "а", "п", "р", "о", "л", "д", "ж", "э"],
+        ["<", "я", "ч", "с", "м", "и", "т", "ь", "б", "ю", "Enter"]
+      ];
+  
+      const initGameField = Array.from({ length: 6 }, () =>
+        Array.from({ length: 5 }, () => ({ name: "", status: "" }))
+      );
+      const initKeyboard = keyBoardLetters.map(row =>
+        row.map(letter => ({ name: letter, status: "" }))
+      );
+  
+      const initHiddenWord = words[Math.floor(Math.random() * words.length)];
+  
+      localStorage.setItem("gameField", JSON.stringify(initGameField));
+      localStorage.setItem("keyboard", JSON.stringify(initKeyboard));
+      localStorage.setItem("hiddenWord", initHiddenWord);
+      setGameField(initGameField);
+      setKeyboard(initKeyboard);
+      setHiddenWord(initHiddenWord);
+    }
+  }, [trigger]);
+  
 
   function handleKeyboardClick(clickedLetter) {
     let changed = false;
@@ -131,6 +152,7 @@ function App() {
       })
     ))
 
+    localStorage.setItem("gameField", JSON.stringify(newGameField));
     setGameField(newGameField);
   }
 
@@ -154,6 +176,7 @@ function App() {
       })
     ).toReversed().map((row) => row.toReversed());
     
+    localStorage.setItem("gameField", JSON.stringify(newGameField));
     setGameField(newGameField);
   }
   
@@ -181,6 +204,7 @@ function App() {
               (word.at(-1).name !== "" && word.at(-1).status !== "")) {
             return word;
           } else {
+            localStorage.setItem("keyboard", JSON.stringify(paintKeyboard(checkWords(userWord, hiddenWord), keyboard)));
             setKeyboard(paintKeyboard(checkWords(userWord, hiddenWord), keyboard))
             return checkWords(userWord, hiddenWord);
           }
@@ -188,6 +212,7 @@ function App() {
         if (userWord === hiddenWord) {
           setWin(true);
         }
+        localStorage.setItem("gameField", JSON.stringify(newGameField));
         setGameField(newGameField);
       } else {
         console.log("СЛОВО НЕ СУЩЕВСТВУЕТ")
@@ -195,6 +220,11 @@ function App() {
     } else {
       console.log(`Слово ${userWord} не готово`);
     }
+  }
+
+  function startNewGame() {
+    localStorage.clear();
+    setTrigger(prev => !prev);
   }
 
   return (
@@ -234,6 +264,7 @@ function App() {
           })}
         </div>
       ))}
+      <button onClick={() => startNewGame()}>Новая игра</button>
     </>
   );
 }
