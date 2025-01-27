@@ -1,14 +1,7 @@
 import { useState } from 'react';
+import { words } from './words.js';
 import './App.css';
 
-const hiddenWord = "лодка";
-
-const words = [
-  "лампа", "зебра", "книга", "мечта", "пчела", "трава", "парус", "сонет", "венок", "цветы",
-  "сосна", "весна", "птица", "земля", "лодка", "груша", "мороз", "тепло", "бочка", "дверь",
-  "ветка", "ягода", "улица", "шапка", "флора", "игрок", "палка", "вилка", "около", "лампа", 
-  "ойуой", "ооотт", , "йоуой", "юнион", "аллоу", "банал"
-];
 
 function checkWords(userWord, hiddenWord) {
   const wordInfo = [];
@@ -98,7 +91,7 @@ const keyBoardLetters = [["й","ц","у","к","е","н","г","ш","щ","з","х"
                   ["<","я","ч","с","м","и","т","ь","б","ю","Enter"]]
 
 
-let initGameField = Array.from({ length: 6 }, () =>
+const initGameField = Array.from({ length: 6 }, () =>
   Array.from({ length: 5 }, () => ({ name: "", status: "" }))
 );
 
@@ -111,9 +104,14 @@ const initialKeyboard = keyBoardLetters.map(row =>
 function App() {
   const [gameField, setGameField] = useState(initGameField);
   const [keyboard, setKeyboard] = useState(initialKeyboard);
+  const [hiddenWord, setHiddenWord] = useState(words[Math.floor(Math.random() * words.length)]);
+  const [win, setWin] = useState(false);
+
 
   function handleKeyboardClick(clickedLetter) {
     let changed = false;
+  
+    if (win) return;  
 
     // Проврека когда можно добавлять новую букву
     for (const word of gameField) {
@@ -187,8 +185,10 @@ function App() {
             return checkWords(userWord, hiddenWord);
           }
         })
+        if (userWord === hiddenWord) {
+          setWin(true);
+        }
         setGameField(newGameField);
-      
       } else {
         console.log("СЛОВО НЕ СУЩЕВСТВУЕТ")
       }
@@ -199,6 +199,7 @@ function App() {
 
   return (
     <>
+      <br></br>
       <div className="words-field">
         {gameField.map((word, wordIndex) => (
           word.map((letter, letterIndex) => {
@@ -207,7 +208,7 @@ function App() {
           })
         ))}
       </div>
-
+      <br></br>
       {keyboard.map((row, rowKey) => (
         <div className="keyboard" key={rowKey}>
           {row.map((letter, letterKey) => {
@@ -233,9 +234,7 @@ function App() {
           })}
         </div>
       ))}
-
     </>
-
   );
 }
 
