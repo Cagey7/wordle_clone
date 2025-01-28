@@ -11,10 +11,11 @@
 .cell {
   border: 2px solid rgb(218, 218, 218);
   text-align: center;
-  font-size: 3rem;
+  font-size: 2.7em;
   font-weight: 900;
-  color: #444444;
-  
+  color: #4b4b4b;
+  user-select: none;
+  line-height: 1.35;
 }
 
 .keyboard {
@@ -30,10 +31,16 @@
   background-color: rgb(192, 192, 192);
   flex: 1;
   border-radius: 7px;
-  color: white;
-  font-size: 2.5rem;
+  color: #4b4b4b;
+  font-size: 2em;
   text-align: center;
   cursor: pointer;
+  user-select: none;
+  line-height: 1.8;
+}
+
+.key:hover {
+  filter: brightness(95%); 
 }
 
 .key-wide {
@@ -46,16 +53,86 @@
   color: white
 }
 
-
 .incorrect {
   background-color: rgb(146, 146, 146);
   border-color: rgb(146, 146, 146);
   color: white
 }
 
-
 .exist {
   background-color: rgb(171, 177, 87);
   border-color: rgb(171, 177, 87);
   color: white
+}
+
+.keyboard > .correct ,
+.keyboard > .incorrect ,
+.keyboard > .exist {
+  color: #4b4b4b;
+}
+
+.input-letter {
+  border-color: rgb(150, 150, 150);
+}
+
+.enter {
+  line-height: 3;
+  font-size: 1.5rem;
+}
+
+.backspace {
+  line-height: 2.1;
+  font-size: 2rem;
+}
+
+.title {
+  text-align: center;
+  font-size: 3rem;
+  margin: 0.1em 0;
+  color: rgb(58, 58, 58);
+}
+
+
+.not-find-word {
+  border-color: rgb(255, 38, 38);
+}
+
+
+.game-status {
+  text-align: center;
+  background-color:  rgb(192, 192, 192);
+  color: rgb(58, 58, 58);
+  margin: 0.5em auto;
+  width: 7em;
+  padding: 0.2em;
+  border-radius: 0.5rem;
+}
+
+.hidden-word {
+  text-align: center;
+  font-size: 1.5rem;
+  border: 1px solid rgb(58, 58, 58);
+  color: rgb(58, 58, 58);
+  width: 13em;
+  margin: 0.5em auto;
+}
+
+.new-game {
+  all: unset;
+  display: block;
+  text-align: center;
+  font-size: 1.5rem;
+  background-color: rgb(101, 170, 101);
+  border-color: rgb(101, 170, 101);
+  color: rgb(58, 58, 58);
+  width: 6em;
+  padding: 0.3em;
+  margin: 0.5em auto;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.new-game:hover {
+  filter: brightness(95%); 
 }

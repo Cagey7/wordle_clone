@@ -90,24 +90,23 @@ function App() {
   const [gameField, setGameField] = useState([]);
   const [keyboard, setKeyboard] = useState([]);
   const [hiddenWord, setHiddenWord] = useState("");
-  const [win, setWin] = useState(false);
+  const [win, setWin] = useState("");
   const [trigger, setTrigger] = useState(false);
+  const [notFindWord, setNotFindWord] = useState(false);
 
+  console.log(hiddenWord)
   useEffect(() => {
-    
-    if (win) {
-      localStorage.clear();
-    }
-
-    if (localStorage.getItem("gameField") && localStorage.getItem("keyboard") && localStorage.getItem("hiddenWord")) {
+    if (localStorage.getItem("gameField") && localStorage.getItem("keyboard") && localStorage.getItem("hiddenWord") && localStorage.getItem("win")) {
       setGameField(JSON.parse(localStorage.getItem("gameField")));
       setKeyboard(JSON.parse(localStorage.getItem("keyboard")));
+      console.log(localStorage.getItem("win"))
+      setWin(JSON.parse(localStorage.getItem("win")));
       setHiddenWord(localStorage.getItem("hiddenWord"));
     } else {
       const keyBoardLetters = [
         ["й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з", "х", "ъ"],
         ["ф", "ы", "в", "а", "п", "р", "о", "л", "д", "ж", "э"],
-        ["<", "я", "ч", "с", "м", "и", "т", "ь", "б", "ю", "Enter"]
+        ["⌫", "я", "ч", "с", "м", "и", "т", "ь", "б", "ю", "Enter"]
       ];
   
       const initGameField = Array.from({ length: 6 }, () =>
@@ -121,10 +120,12 @@ function App() {
   
       localStorage.setItem("gameField", JSON.stringify(initGameField));
       localStorage.setItem("keyboard", JSON.stringify(initKeyboard));
+      localStorage.setItem("win", JSON.stringify(""));
       localStorage.setItem("hiddenWord", initHiddenWord);
       setGameField(initGameField);
       setKeyboard(initKeyboard);
       setHiddenWord(initHiddenWord);
+      setWin("");
     }
   }, [trigger]);
   
@@ -210,12 +211,20 @@ function App() {
           }
         })
         if (userWord === hiddenWord) {
-          setWin(true);
+          setWin(localStorage.setItem("win", JSON.stringify("win")));
+          setWin("win");
+        }
+        if (newGameField.at(-1)[0].status !== "" && win === "") {
+          setWin(localStorage.setItem("win", JSON.stringify("lose")));
+          setWin("lose");
         }
         localStorage.setItem("gameField", JSON.stringify(newGameField));
         setGameField(newGameField);
       } else {
-        console.log("СЛОВО НЕ СУЩЕВСТВУЕТ")
+        setNotFindWord(true);
+        setTimeout(() => {
+          setNotFindWord(false);
+        }, 2000);
       }
     } else {
       console.log(`Слово ${userWord} не готово`);
@@ -228,29 +237,31 @@ function App() {
   }
 
   return (
-    <>
-      <br></br>
+    <div className="container">
+      <div className="title">Wordle</div>
       <div className="words-field">
         {gameField.map((word, wordIndex) => (
           word.map((letter, letterIndex) => {
-            return <div className={`cell ${getStatusClass(letter)} `} 
+            return <div className={`cell ${getStatusClass(letter)} ${letter.name !== "" && letter.status === "" ? "input-letter" : ""}
+                                          ${getStatusClass(letter)} ${letter.name !== "" && letter.status === "" && notFindWord ? "not-find-word" : ""}`} 
                         key={letterIndex}>{letter.name}</div>;
           })
         ))}
       </div>
-      <br></br>
+      {win ? <div className="game-status">{win === "win" ? "Победа!" : ""} {win === "lose" ? "Поражение!" : ""}</div> : <br></br>}
+      {win === "lose" ? <div className="hidden-word">Загаданное слово: {hiddenWord}</div> : ""}
       {keyboard.map((row, rowKey) => (
         <div className="keyboard" key={rowKey}>
           {row.map((letter, letterKey) => {
             if (letter.name === "Enter") {
               return (
-                <div className={`key key-wide ${getStatusClass(letter)}`} key={letterKey} onClick={() => confirmWord()}>
+                <div className={`key key-wide enter ${getStatusClass(letter)}`} key={letterKey} onClick={() => confirmWord()}>
                   {letter.name}
                 </div>
               );
-            } else if (letter.name === "<") {
+            } else if (letter.name === "⌫") {
               return (
-                <div className={`key key-wide ${getStatusClass(letter)}`} key={letterKey} onClick={() => deleteLastLetter()}>
+                <div className={`key backspace key-wide ${getStatusClass(letter)}`} key={letterKey} onClick={() => deleteLastLetter()}>
                   {letter.name}
                 </div>
               );
@@ -264,8 +275,8 @@ function App() {
           })}
         </div>
       ))}
-      <button onClick={() => startNewGame()}>Новая игра</button>
-    </>
+      <button className="new-game" onClick={() => startNewGame()}>Новая игра</button>
+    </div>
   );
 }
 
