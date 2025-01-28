@@ -94,12 +94,10 @@ function App() {
   const [trigger, setTrigger] = useState(false);
   const [notFindWord, setNotFindWord] = useState(false);
 
-  console.log(hiddenWord)
   useEffect(() => {
     if (localStorage.getItem("gameField") && localStorage.getItem("keyboard") && localStorage.getItem("hiddenWord") && localStorage.getItem("win")) {
       setGameField(JSON.parse(localStorage.getItem("gameField")));
       setKeyboard(JSON.parse(localStorage.getItem("keyboard")));
-      console.log(localStorage.getItem("win"))
       setWin(JSON.parse(localStorage.getItem("win")));
       setHiddenWord(localStorage.getItem("hiddenWord"));
     } else {
@@ -197,7 +195,6 @@ function App() {
     if (userWord.length >= 5) {
       // Проверка слова на существование
       if (words.includes(userWord)) {
-        console.log("СЛОВО СУЩЕВСТВУЕТ");
         // Закрашивание букв игрового поля
         const newGameField = gameField.map((word) => {
           // Проверка новое ли слово
@@ -211,11 +208,11 @@ function App() {
           }
         })
         if (userWord === hiddenWord) {
-          setWin(localStorage.setItem("win", JSON.stringify("win")));
+          localStorage.setItem("win", JSON.stringify("win"));
           setWin("win");
         }
-        if (newGameField.at(-1)[0].status !== "" && win === "") {
-          setWin(localStorage.setItem("win", JSON.stringify("lose")));
+        if (newGameField.at(-1)[0].status !== "" && win === localStorage.getItem("win")) {
+          localStorage.setItem("win", JSON.stringify("lose"));
           setWin("lose");
         }
         localStorage.setItem("gameField", JSON.stringify(newGameField));
